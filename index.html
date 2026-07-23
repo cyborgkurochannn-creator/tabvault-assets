@@ -587,7 +587,7 @@ let lastDataHash = "";
         </td>
         <td data-label="Aksi" style="text-align:right;">
           ${!r.kembali ? `<button class="btn-return" onclick="markReturn('${r.id}')">Tandai Kembali</button>` : ''}
-          <button class="btn-delete" onclick="deleteRow('${r.id}')" title="Hapus entri">✕</button>
+          <button class="btn-delete" onclick="removeRow('${r.id}')" title="Hapus entri">✕</button>
         </td>
       </tr>
     `;
