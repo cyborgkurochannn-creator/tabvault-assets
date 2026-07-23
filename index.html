@@ -462,44 +462,46 @@
   // =====================================================
   const API_URL = 'https://script.google.com/macros/s/AKfycbz2ix0GZRi0q62JsSH91tY5XoQhqwvkg99YeiS_Cn6iEN29taBttw3syFvyfXjs0Xx0_w/exec';
 
-  // Helper: ubah link "share/view" Google Drive jadi link gambar langsung
-  // (link .../view?usp=... tidak bisa dipakai sebagai src <img>, harus diubah
-  // ke format uc?export=view&id=FILE_ID agar bisa tampil sebagai gambar)
-  function driveDirectLink(shareUrl){
-    const match = shareUrl.match(/\/d\/([^/]+)/);
-    if(!match) return shareUrl;
-    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-  }
 
-  const PESERTA_RAW = [
-    { nama: 'AMEL', foto: 'https://drive.google.com/file/d/1rkPPESpvu-HnIMG-WhDLfVlMN3k60CT8/view?usp=drive_link' },
-    { nama: 'AMIN', foto: 'https://drive.google.com/file/d/1j5fD1T3VBtg_07fCQTC-YCrtVV8phCaA/view?usp=drive_link' },
-    { nama: 'DIVAN', foto: 'https://drive.google.com/file/d/1eGTD-R7lsppL7xyxsjyRWTYh8hqcFJFg/view?usp=drive_link' },
-    { nama: 'ERNI',  foto: 'https://drive.google.com/file/d/1aj9eP-QF0wHmgePcB5tCfC4aIaGphIDE/view?usp=drive_link' },
-    { nama: 'FADLI', foto: 'https://drive.google.com/file/d/1N1eqW5wKkgnpAEUxUrS9UwgyuVjBaCWC/view?usp=drive_link' },
-    { nama: 'HANA', foto: 'https://drive.google.com/file/d/1EGn_i-lr_sHGYbF4TcjVGtQ3_kYgpIrz/view?usp=drive_link' },
-    { nama: 'ICHA', foto: 'https://drive.google.com/file/d/1OxJsuWigKTi7lXBH5bAYDuewnOFhD-c2/view?usp=drive_link' },
-    { nama: 'ILHAM',  foto: 'https://drive.google.com/file/d/1ISbvLpq1VI3Wqxl4GOyg3rJqIyBJ02_F/view?usp=drive_link' },
-    { nama: 'INDRI', foto: 'https://drive.google.com/file/d/1YeM9Uf93k_qwfaTWqPU7iuac4ucsBd9a/view?usp=drive_link' },
-    { nama: 'JEANNET', foto: 'https://drive.google.com/file/d/1SkISxkkOonYljllhaTFWbNglxwwV8lso/view?usp=drive_link' },
-    { nama: 'KIKI', foto: 'https://drive.google.com/file/d/1AnvEOzTJa5YagFVEdxRpGEVkqXbIs6RS/view?usp=drive_link' },
-    { nama: 'MELIN',  foto: 'https://drive.google.com/file/d/1QLcn52dojKApzvyIHvrsSklj4mV58s-5/view?usp=drive_link' },
-    { nama: 'MIRNA', foto: 'https://drive.google.com/file/d/11gTVaVwdXwyWFTERoigshECAs1W2CwS5/view?usp=drive_link' },
-    { nama: 'NANDA', foto: 'https://drive.google.com/file/d/1WCjoSvsjZ2TZHDexcVWPH_z8i74HQnKV/view?usp=drive_link' },
-    { nama: 'NAYA', foto: 'https://drive.google.com/file/d/1jwbrHEKoNa3iLkXEBiVY5JJBOn_Wnor_/view?usp=drive_link' },
-    { nama: 'NIA',  foto: 'https://drive.google.com/file/d/1poT5OnSk1svSKZYUDuqGmK10F5o56osm/view?usp=drive_link' },
-    { nama: 'RIDWAN', foto: 'https://drive.google.com/file/d/1lvLaUk6FKdYjb16r-llCDPvY9Q2WNHdP/view?usp=drive_link' },
-    { nama: 'RIKI',  foto: 'https://drive.google.com/file/d/1yIEoQciHZO_LyfpRTPWOQuCLA_9ZZa7W/view?usp=drive_link' },
-    { nama: 'SABRINA', foto: 'https://drive.google.com/file/d/1si3FCOaXa0yiFkyDtBwydQjFnYAiqoLy/view?usp=drive_link' },
-    { nama: 'WULAN', foto: 'https://drive.google.com/file/d/18wcp3lAlurepjIpaKBh7HaTJUrXYQ0jN/view?usp=drive_link' },
-    { nama: 'YAYA', foto: 'https://drive.google.com/file/d/1fz7qpjKCh-8OEmvF3eDvHlOAUCpMzDWx/view?usp=drive_link' },
-    { nama: 'YUSUF',  foto: 'https://drive.google.com/file/d/1wA0ua5zJ7se9LUyuABEPA5vi79RVwPmt/view?usp=drive_link' },
-  ];
+// ===============================
+// DAFTAR PESERTA & FOTO LOKAL
+// ===============================
 
-  // Peta nama -> URL foto langsung (sudah dikonversi dari link "view" Drive)
-  const PESERTA = PESERTA_RAW.map(p => ({ nama: p.nama, foto: driveDirectLink(p.foto) }));
-  const FOTO_BY_NAMA = Object.fromEntries(PESERTA.map(p => [p.nama, p.foto]));
+const PESERTA = [
+  { nama: "AMEL", foto: "img/AMEL.jpg" },
+  { nama: "AMIN", foto: "img/AMIN.jpg" },
+  { nama: "DIVAN", foto: "img/DIVAN.jpg" },
+  { nama: "ERNI", foto: "img/ERNI.jpg" },
+  { nama: "FADLI", foto: "img/FADLI.jpg" },
+  { nama: "HANA", foto: "img/HANA.jpg" },
+  { nama: "ICHA", foto: "img/ICHA.jpg" },
+  { nama: "ILHAM", foto: "img/ILHAM.jpg" },
+  { nama: "INDRI", foto: "img/INDRI.jpg" },
+  { nama: "JEANNET", foto: "img/JEANNET.jpg" },
+  { nama: "KIKI", foto: "img/KIKI.jpg" },
+  { nama: "MELIN", foto: "img/MELIN.jpg" },
+  { nama: "MIRNA", foto: "img/MIRNA.jpg" },
+  { nama: "NANDA", foto: "img/NANDA.jpg" },
+  { nama: "NAYA", foto: "img/NAYA.jpg" },
+  { nama: "NIA", foto: "img/NIA.jpg" },
+  { nama: "RIDWAN", foto: "img/RIDWAN.jpg" },
+  { nama: "RIKI", foto: "img/RIKI.jpg" },
+  { nama: "SABRINA", foto: "img/SABRINA.jpg" },
+  { nama: "WULAN", foto: "img/WULAN.jpg" },
+  { nama: "YAYA", foto: "img/YAYA.jpg" },
+  { nama: "YUSUF", foto: "img/YUSUF.jpg" }
+];
 
+const FOTO_BY_NAMA = Object.fromEntries(
+    PESERTA.map(p => [p.nama, p.foto])
+);
+
+// Preload gambar agar tidak berkedip
+Object.values(FOTO_BY_NAMA).forEach(src => {
+    const img = new Image();
+    img.src = src;
+});
+ 
   // Typo 'TAB20' diperbaiki menjadi 'TAB-20' agar format konsisten
   const DAFTAR_TAB = ['TAB-1','TAB-2','TAB-3','TAB-4','TAB-5','TAB-6','TAB-7','TAB-8','TAB-9','TAB-10','TAB-11','TAB-12','TAB-13','TAB-14','TAB-15','TAB-16','TAB-17','TAB-18','TAB-19','TAB-20','TAB-21','TAB-22','TAB-23','TAB-24','TAB-25'];
 
@@ -509,6 +511,7 @@
   const namaSelect = document.getElementById('nama');
   const tabSelect = document.getElementById('nomorTab');
   let allData = [];
+let lastDataHash = "";
 
   if (!API_URL || API_URL.includes('GANTI_DENGAN')) {
     configBanner.style.display = 'block';
@@ -560,10 +563,17 @@
     }
     tableBody.innerHTML = data.map(r => {
       const foto = FOTO_BY_NAMA[r.nama];
-      const fotoTag = foto
-        ? `<img class="peminjam-foto" src="${foto}" alt="${escapeHtml(r.nama)}" onerror="this.style.display='none'">`
-        : '';
-      return `
+     const fotoTag = foto
+  ? `
+      <img class="peminjam-foto"
+           src="${foto}"
+           loading="eager"
+           decoding="async"
+           draggable="false"
+           alt="${escapeHtml(r.nama)}"
+           onerror="this.style.display='none'">
+    `
+  : "";      return `
       <tr>
         <td data-label="Nama"><div class="peminjam-cell">${fotoTag}<strong>${escapeHtml(r.nama)}</strong></div></td>
         <td data-label="Nomor Tab"><span class="nomor-tab">${escapeHtml(r.nomorTab)}</span></td>
@@ -576,7 +586,7 @@
         </td>
         <td data-label="Aksi" style="text-align:right;">
           ${!r.kembali ? `<button class="btn-return" onclick="markReturn('${r.id}')">Tandai Kembali</button>` : ''}
-          <button class="btn-delete" onclick="removeRow('${r.id}')" title="Hapus entri">✕</button>
+          <button class="btn-delete" onclick="deleteRow('${r.id}')" title="Hapus entri">✕</button>
         </td>
       </tr>
     `;
@@ -589,20 +599,31 @@
 
   async function loadData(){
     try{
-      const res = await fetch(API_URL + '?action=list');
-      const json = await res.json();
-      if(json.success){
-        allData = json.data;
-        renderStats(allData);
-        renderTable(allData);
-      } else {
-        showToast('Gagal memuat data: ' + json.error);
-      }
-    } catch(err){
-      tableBody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="glyph">⚠</div>Tidak bisa terhubung ke API. Cek konfigurasi API_URL.</div></td></tr>`;
-    }
-  }
+        const res = await fetch(API_URL + '?action=list');
+        const json = await res.json();
 
+        if(json.success){
+
+            const newHash = JSON.stringify(json.data);
+
+            if(newHash !== lastDataHash){
+
+                lastDataHash = newHash;
+                allData = json.data;
+
+                renderStats(allData);
+                renderTable(allData);
+
+            }
+
+        } else {
+            showToast('Gagal memuat data: ' + json.error);
+        }
+
+    } catch(err){
+        tableBody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="glyph">⚠</div>Tidak bisa terhubung ke API. Cek konfigurasi API_URL.</div></td></tr>`;
+    }
+}
   async function postAction(payload){
     // text/plain menghindari CORS preflight pada Google Apps Script
     const res = await fetch(API_URL, {
