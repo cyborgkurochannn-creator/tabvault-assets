@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TABVAULT — Ledger Peminjaman Tablet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12100D;
+    --panel:#1B1713;
+    --panel-2:#221D18;
+    --border:#3A3128;
+    --gold:#C9A64B;
+    --gold-soft:#8f7638;
+    --cream:#F2ECDD;
+    --muted:#9C8F7A;
+    --sage:#7C9B7E;
+    --sage-soft:rgba(124,155,126,0.14);
+    --copper:#C07A3E;
+    --copper-soft:rgba(192,122,62,0.14);
+    --danger:#B25146;
+    --radius:14px;
+    --shadow: 0 20px 60px -20px rgba(0,0,0,0.6);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(201,166,75,0.08), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(201,166,75,0.05), transparent 55%),
+      var(--bg);
+    color:var(--cream);
+    font-family:'Manrope', sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:56px 28px 100px;}
+
+  /* ---------- HEADER ---------- */
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    gap:24px;
+    border-bottom:1px solid var(--border);
+    padding-bottom:28px;
+    margin-bottom:44px;
+    flex-wrap:wrap;
+  }
+  .brand-mark{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .seal{
+    width:46px;height:46px;border-radius:50%;
+    border:1.5px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces', serif;
+    font-size:15px;color:var(--gold);
+    flex-shrink:0;
+    position:relative;
+  }
+  .seal::before{
+    content:'';
+    position:absolute;inset:5px;
+    border:1px dashed var(--gold-soft);
+    border-radius:50%;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:32px;
+    letter-spacing:0.5px;
+    margin:0;
+    color:var(--cream);
+  }
+  .eyebrow{
+    font-size:11px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 6px;
+  }
+  .tagline{
+    font-size:13.5px;
+    color:var(--muted);
+    max-width:360px;
+    text-align:right;
+    line-height:1.5;
+    font-style:italic;
+    font-family:'Fraunces', serif;
+  }
+
+  /* ---------- STAT CARDS ---------- */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:20px;
+    margin-bottom:46px;
+  }
+  .stat-card{
+    background:linear-gradient(160deg, var(--panel), var(--panel-2));
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:24px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  .stat-card::after{
+    content:'';
+    position:absolute;
+    right:-30px;top:-30px;
+    width:110px;height:110px;
+    border-radius:50%;
+    border:1px solid rgba(201,166,75,0.12);
+  }
+  .stat-label{
+    font-size:11px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 12px;
+  }
+  .stat-value{
+    font-family:'Fraunces', serif;
+    font-size:44px;
+    font-weight:600;
+    margin:0;
+    line-height:1;
+  }
+  .stat-value.gold{color:var(--gold);}
+  .stat-value.sage{color:var(--sage);}
+  .stat-value.copper{color:var(--copper);}
+  .stat-foot{font-size:12px;color:var(--muted);margin-top:10px;}
+
+  /* ---------- FORM PANEL ---------- */
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:28px 30px;
+    margin-bottom:36px;
+    box-shadow:var(--shadow);
+  }
+  .panel h2{
+    font-family:'Fraunces', serif;
+    font-size:19px;
+    font-weight:600;
+    margin:0 0 4px;
+    color:var(--cream);
+  }
+  .panel .sub{font-size:12.5px;color:var(--muted);margin:0 0 20px;}
+  form{
+    display:grid;
+    grid-template-columns:1.3fr 1fr auto;
+    gap:14px;
+    align-items:end;
+  }
+  label{
+    display:block;
+    font-size:11px;
+    letter-spacing:1.4px;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  input[type=text], select{
+    width:100%;
+    background:#0F0D0A;
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:12px 14px;
+    color:var(--cream);
+    font-family:'Manrope', sans-serif;
+    font-size:14.5px;
+    outline:none;
+    transition:border-color .15s ease;
+    appearance:none;
+    -webkit-appearance:none;
+  }
+  select{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%239C8F7A'/></svg>");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+    padding-right:34px;
+  }
+  input[type=text]:focus, select:focus{border-color:var(--gold);}
+  button{
+    font-family:'Manrope', sans-serif;
+    font-weight:700;
+    font-size:13.5px;
+    letter-spacing:0.4px;
+    border:none;
+    border-radius:8px;
+    padding:12.5px 22px;
+    cursor:pointer;
+    transition:transform .12s ease, filter .12s ease;
+    white-space:nowrap;
+  }
+  button:active{transform:translateY(1px);}
+  .btn-primary{
+    background:linear-gradient(180deg, #D8B968, var(--gold));
+    color:#221B0E;
+  }
+  .btn-primary:hover{filter:brightness(1.07);}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+
+  /* ---------- TABLE ---------- */
+  .ledger-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .ledger-head h2{
+    font-family:'Fraunces', serif;
+    font-size:19px;
+    margin:0;
+  }
+  .search-box input{
+    background:var(--panel);
+    width:220px;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  thead th{
+    text-align:left;
+    font-size:10.5px;
+    letter-spacing:1.6px;
+    text-transform:uppercase;
+    color:var(--muted);
+    padding:16px 20px;
+    border-bottom:1px solid var(--border);
+    font-weight:600;
+  }
+  tbody td{
+    padding:16px 20px;
+    font-size:14px;
+    border-bottom:1px solid rgba(58,49,40,0.5);
+    color:var(--cream);
+    vertical-align:middle;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(201,166,75,0.03);}
+  .peminjam-cell{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .peminjam-foto{
+    width:32px;height:32px;
+    border-radius:50%;
+    object-fit:cover;
+    border:1px solid var(--border);
+    background:#0F0D0A;
+    flex-shrink:0;
+  }
+  .nomor-tab{
+    font-family:'IBM Plex Mono', monospace;
+    color:var(--gold);
+    font-size:13px;
+  }
+  .tanggal{
+    font-family:'IBM Plex Mono', monospace;
+    font-size:12.5px;
+    color:var(--muted);
+  }
+  .stamp{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:5px 12px 5px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    border:1px solid transparent;
+  }
+  .stamp.dipinjam{background:var(--copper-soft); color:var(--copper); border-color:rgba(192,122,62,0.35);}
+  .stamp.kembali{background:var(--sage-soft); color:var(--sage); border-color:rgba(124,155,126,0.35);}
+  .stamp::before{content:'●'; font-size:8px;}
+  .btn-return{
+    background:transparent;
+    border:1px solid var(--sage);
+    color:var(--sage);
+    padding:7px 14px;
+    font-size:12px;
+    font-weight:600;
+    border-radius:6px;
+  }
+  .btn-return:hover{background:var(--sage-soft);}
+  .btn-delete{
+    background:transparent;
+    border:1px solid transparent;
+    color:var(--muted);
+    font-size:16px;
+    padding:4px 8px;
+  }
+  .btn-delete:hover{color:var(--danger); border-color:rgba(178,81,70,0.4);}
+  .empty-state{
+    text-align:center;
+    padding:60px 20px;
+    color:var(--muted);
+  }
+  .empty-state .glyph{
+    font-family:'Fraunces', serif;
+    font-size:30px;
+    color:var(--gold-soft);
+    margin-bottom:10px;
+  }
+  .toast{
+    position:fixed;
+    bottom:28px;left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--panel-2);
+    border:1px solid var(--gold);
+    color:var(--cream);
+    padding:13px 22px;
+    border-radius:9px;
+    font-size:13.5px;
+    box-shadow:var(--shadow);
+    opacity:0;
+    pointer-events:none;
+    transition:all .25s ease;
+    z-index:100;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .config-banner{
+    background:rgba(178,81,70,0.1);
+    border:1px solid rgba(178,81,70,0.4);
+    color:#E3B3AC;
+    padding:14px 20px;
+    border-radius:10px;
+    font-size:13px;
+    margin-bottom:30px;
+    display:none;
+  }
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:11.5px;
+    margin-top:60px;
+    letter-spacing:1px;
+  }
+  @media (max-width:720px){
+    .stats{grid-template-columns:1fr;}
+    form{grid-template-columns:1fr;}
+    header{flex-direction:column; align-items:flex-start;}
+    .tagline{text-align:left;}
+    table, thead, tbody, th, td, tr{display:block;}
+    thead{display:none;}
+    tbody tr{
+      border-bottom:1px solid var(--border);
+      padding:14px 18px;
+    }
+    tbody td{border:none; padding:6px 0; display:flex; justify-content:space-between; gap:12px;}
+    tbody td::before{content:attr(data-label); color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:1px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand-mark">
+      <div class="seal">TV</div>
+      <div>
+        <p class="eyebrow">Ledger Aset Digital</p>
+        <h1>PEMINJAMAN TAB</h1>
+      </div>
+    </div>
+    <p class="tagline">"Setiap tablet yang keluar, tercatat. Setiap yang kembali, terstempel."</p>
+  </header>
+
+  <div class="config-banner" id="configBanner">
+    ⚠️ API_URL belum diatur. Buka file <strong>index.html</strong>, isi variabel <code>API_URL</code> di bagian bawah dengan URL Web App Google Apps Script kamu.
+  </div>
+
+  <section class="stats">
+    <div class="stat-card">
+      <p class="stat-label">Total Tercatat</p>
+      <p class="stat-value gold" id="statTotal">–</p>
+      <p class="stat-foot">Seluruh entri peminjaman</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Sedang Dipinjam</p>
+      <p class="stat-value copper" id="statOut">–</p>
+      <p class="stat-foot">Belum ditandai kembali</p>
+    </div>
+    <div class="stat-card">
+      <p class="stat-label">Sudah Kembali</p>
+      <p class="stat-value sage" id="statIn">–</p>
+      <p class="stat-foot">Selesai siklus peminjaman</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Catat Peminjaman Baru</h2>
+    <p class="sub">Pilih nama peminjam dan nomor tab untuk membuka entri baru di ledger.</p>
+    <form id="borrowForm">
+      <div>
+        <label for="nama">Nama Peminjam</label>
+        <select id="nama" required>
+          <option value="" disabled selected>Pilih nama…</option>
+        </select>
+      </div>
+      <div>
+        <label for="nomorTab">Nomor Tab</label>
+        <select id="nomorTab" required>
+          <option value="" disabled selected>Pilih nomor tab…</option>
+        </select>
+      </div>
+      <button type="submit" class="btn-primary" id="submitBtn">Pinjamkan →</button>
+    </form>
+  </section>
+
+  <section>
+    <div class="ledger-head">
+      <h2>Buku Ledger</h2>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Cari nama atau nomor tab…" />
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Nama</th>
+          <th>Nomor Tab</th>
+          <th>Peminjaman</th>
+          <th>Kembali</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="6"><div class="empty-state"><div class="glyph">⟳</div>Memuat data…</div></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>TABVAULT — Dibangun dengan Google Apps Script · Google Sheets · Vercel</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // =====================================================
+  // KONFIGURASI — ganti dengan URL Web App Apps Script kamu
+  // (Deploy > New deployment > Web app, salin URL yang berakhiran /exec)
+  // =====================================================
+  const API_URL = 'https://script.google.com/macros/s/AKfycbz2ix0GZRi0q62JsSH91tY5XoQhqwvkg99YeiS_Cn6iEN29taBttw3syFvyfXjs0Xx0_w/exec';
+
+  // Helper: ubah link "share/view" Google Drive jadi link gambar langsung
+  // (link .../view?usp=... tidak bisa dipakai sebagai src <img>, harus diubah
+  // ke format uc?export=view&id=FILE_ID agar bisa tampil sebagai gambar)
+  function driveDirectLink(shareUrl){
+    const match = shareUrl.match(/\/d\/([^/]+)/);
+    if(!match) return shareUrl;
+    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+  }
+
+  const PESERTA_RAW = [
+    { nama: 'AMEL', foto: 'https://drive.google.com/file/d/1rkPPESpvu-HnIMG-WhDLfVlMN3k60CT8/view?usp=drive_link' },
+    { nama: 'AMIN', foto: 'https://drive.google.com/file/d/1j5fD1T3VBtg_07fCQTC-YCrtVV8phCaA/view?usp=drive_link' },
+    { nama: 'DIVAN', foto: 'https://drive.google.com/file/d/1eGTD-R7lsppL7xyxsjyRWTYh8hqcFJFg/view?usp=drive_link' },
+    { nama: 'ERNI',  foto: 'https://drive.google.com/file/d/1aj9eP-QF0wHmgePcB5tCfC4aIaGphIDE/view?usp=drive_link' },
+    { nama: 'FADLI', foto: 'https://drive.google.com/file/d/1N1eqW5wKkgnpAEUxUrS9UwgyuVjBaCWC/view?usp=drive_link' },
+    { nama: 'HANA', foto: 'https://drive.google.com/file/d/1EGn_i-lr_sHGYbF4TcjVGtQ3_kYgpIrz/view?usp=drive_link' },
+    { nama: 'ICHA', foto: 'https://drive.google.com/file/d/1OxJsuWigKTi7lXBH5bAYDuewnOFhD-c2/view?usp=drive_link' },
+    { nama: 'ILHAM',  foto: 'https://drive.google.com/file/d/1ISbvLpq1VI3Wqxl4GOyg3rJqIyBJ02_F/view?usp=drive_link' },
+    { nama: 'INDRI', foto: 'https://drive.google.com/file/d/1YeM9Uf93k_qwfaTWqPU7iuac4ucsBd9a/view?usp=drive_link' },
+    { nama: 'JEANNET', foto: 'https://drive.google.com/file/d/1SkISxkkOonYljllhaTFWbNglxwwV8lso/view?usp=drive_link' },
+    { nama: 'KIKI', foto: 'https://drive.google.com/file/d/1AnvEOzTJa5YagFVEdxRpGEVkqXbIs6RS/view?usp=drive_link' },
+    { nama: 'MELIN',  foto: 'https://drive.google.com/file/d/1QLcn52dojKApzvyIHvrsSklj4mV58s-5/view?usp=drive_link' },
+    { nama: 'MIRNA', foto: 'https://drive.google.com/file/d/11gTVaVwdXwyWFTERoigshECAs1W2CwS5/view?usp=drive_link' },
+    { nama: 'NANDA', foto: 'https://drive.google.com/file/d/1WCjoSvsjZ2TZHDexcVWPH_z8i74HQnKV/view?usp=drive_link' },
+    { nama: 'NAYA', foto: 'https://drive.google.com/file/d/1jwbrHEKoNa3iLkXEBiVY5JJBOn_Wnor_/view?usp=drive_link' },
+    { nama: 'NIA',  foto: 'https://drive.google.com/file/d/1poT5OnSk1svSKZYUDuqGmK10F5o56osm/view?usp=drive_link' },
+    { nama: 'RIDWAN', foto: 'https://drive.google.com/file/d/1lvLaUk6FKdYjb16r-llCDPvY9Q2WNHdP/view?usp=drive_link' },
+    { nama: 'RIKI',  foto: 'https://drive.google.com/file/d/1yIEoQciHZO_LyfpRTPWOQuCLA_9ZZa7W/view?usp=drive_link' },
+    { nama: 'SABRINA', foto: 'https://drive.google.com/file/d/1si3FCOaXa0yiFkyDtBwydQjFnYAiqoLy/view?usp=drive_link' },
+    { nama: 'WULAN', foto: 'https://drive.google.com/file/d/18wcp3lAlurepjIpaKBh7HaTJUrXYQ0jN/view?usp=drive_link' },
+    { nama: 'YAYA', foto: 'https://drive.google.com/file/d/1fz7qpjKCh-8OEmvF3eDvHlOAUCpMzDWx/view?usp=drive_link' },
+    { nama: 'YUSUF',  foto: 'https://drive.google.com/file/d/1wA0ua5zJ7se9LUyuABEPA5vi79RVwPmt/view?usp=drive_link' },
+  ];
+
+  // Peta nama -> URL foto langsung (sudah dikonversi dari link "view" Drive)
+  const PESERTA = PESERTA_RAW.map(p => ({ nama: p.nama, foto: driveDirectLink(p.foto) }));
+  const FOTO_BY_NAMA = Object.fromEntries(PESERTA.map(p => [p.nama, p.foto]));
+
+  // Typo 'TAB20' diperbaiki menjadi 'TAB-20' agar format konsisten
+  const DAFTAR_TAB = ['TAB-1','TAB-2','TAB-3','TAB-4','TAB-5','TAB-6','TAB-7','TAB-8','TAB-9','TAB-10','TAB-11','TAB-12','TAB-13','TAB-14','TAB-15','TAB-16','TAB-17','TAB-18','TAB-19','TAB-20','TAB-21','TAB-22','TAB-23','TAB-24','TAB-25'];
+
+  const tableBody = document.getElementById('tableBody');
+  const toast = document.getElementById('toast');
+  const configBanner = document.getElementById('configBanner');
+  const namaSelect = document.getElementById('nama');
+  const tabSelect = document.getElementById('nomorTab');
+  let allData = [];
+
+  if (!API_URL || API_URL.includes('GANTI_DENGAN')) {
+    configBanner.style.display = 'block';
+  }
+
+  // Isi dropdown nama & nomor tab dari daftar tetap
+  function populateSelects(){
+    PESERTA.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.nama;
+      opt.textContent = p.nama;
+      namaSelect.appendChild(opt);
+    });
+    DAFTAR_TAB.forEach(tab => {
+      const opt = document.createElement('option');
+      opt.value = tab;
+      opt.textContent = tab;
+      tabSelect.appendChild(opt);
+    });
+  }
+  populateSelects();
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(()=> toast.classList.remove('show'), 2600);
+  }
+
+  function fmtDate(iso){
+    if(!iso) return '–';
+    const d = new Date(iso);
+    return d.toLocaleDateString('id-ID', {day:'2-digit', month:'short', year:'numeric'}) +
+      ' · ' + d.toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+  }
+
+  function renderStats(data){
+    const total = data.length;
+    const out = data.filter(r => !r.kembali).length;
+    const inn = total - out;
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statOut').textContent = out;
+    document.getElementById('statIn').textContent = inn;
+  }
+
+  function renderTable(data){
+    if(!data.length){
+      tableBody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="glyph">◇</div>Ledger masih kosong. Catat peminjaman pertama di atas.</div></td></tr>`;
+      return;
+    }
+    tableBody.innerHTML = data.map(r => {
+      const foto = FOTO_BY_NAMA[r.nama];
+      const fotoTag = foto
+        ? `<img class="peminjam-foto" src="${foto}" alt="${escapeHtml(r.nama)}" onerror="this.style.display='none'">`
+        : '';
+      return `
+      <tr>
+        <td data-label="Nama"><div class="peminjam-cell">${fotoTag}<strong>${escapeHtml(r.nama)}</strong></div></td>
+        <td data-label="Nomor Tab"><span class="nomor-tab">${escapeHtml(r.nomorTab)}</span></td>
+        <td data-label="Peminjaman"><span class="tanggal">${fmtDate(r.peminjaman)}</span></td>
+        <td data-label="Kembali"><span class="tanggal">${r.kembali ? fmtDate(r.kembali) : '—'}</span></td>
+        <td data-label="Status">
+          ${r.kembali
+            ? `<span class="stamp kembali">Kembali</span>`
+            : `<span class="stamp dipinjam">Dipinjam</span>`}
+        </td>
+        <td data-label="Aksi" style="text-align:right;">
+          ${!r.kembali ? `<button class="btn-return" onclick="markReturn('${r.id}')">Tandai Kembali</button>` : ''}
+          <button class="btn-delete" onclick="removeRow('${r.id}')" title="Hapus entri">✕</button>
+        </td>
+      </tr>
+    `;
+    }).join('');
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  async function loadData(){
+    try{
+      const res = await fetch(API_URL + '?action=list');
+      const json = await res.json();
+      if(json.success){
+        allData = json.data;
+        renderStats(allData);
+        renderTable(allData);
+      } else {
+        showToast('Gagal memuat data: ' + json.error);
+      }
+    } catch(err){
+      tableBody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="glyph">⚠</div>Tidak bisa terhubung ke API. Cek konfigurasi API_URL.</div></td></tr>`;
+    }
+  }
+
+  async function postAction(payload){
+    // text/plain menghindari CORS preflight pada Google Apps Script
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  }
+
+  document.getElementById('borrowForm').addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const nama = namaSelect.value;
+    const nomorTab = tabSelect.value;
+    if(!nama || !nomorTab) return;
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true; btn.textContent = 'Menyimpan…';
+    try{
+      const json = await postAction({action:'borrow', nama, nomorTab});
+      if(json.success){
+        showToast(`Tercatat: ${nama} meminjam ${nomorTab}`);
+        document.getElementById('borrowForm').reset();
+        loadData();
+      } else {
+        showToast('Gagal: ' + json.error);
+      }
+    } catch(err){
+      showToast('Terjadi kesalahan koneksi.');
+    }
+    btn.disabled = false; btn.textContent = 'Pinjamkan →';
+  });
+
+  async function markReturn(id){
+    try{
+      const json = await postAction({action:'return', id});
+      if(json.success){
+        showToast('Ditandai kembali.');
+        loadData();
+      } else {
+        showToast('Gagal: ' + json.error);
+      }
+    } catch(err){ showToast('Terjadi kesalahan koneksi.'); }
+  }
+
+  async function removeRow(id){
+    if(!confirm('Hapus entri ini dari ledger?')) return;
+    try{
+      const json = await postAction({action:'delete', id});
+      if(json.success){
+        showToast('Entri dihapus.');
+        loadData();
+      } else {
+        showToast('Gagal: ' + json.error);
+      }
+    } catch(err){ showToast('Terjadi kesalahan koneksi.'); }
+  }
+
+  document.getElementById('searchInput').addEventListener('input', (e)=>{
+    const q = e.target.value.toLowerCase();
+    const filtered = allData.filter(r =>
+      r.nama.toLowerCase().includes(q) || String(r.nomorTab).toLowerCase().includes(q)
+    );
+    renderTable(filtered);
+  });
+
+  loadData();
+  setInterval(loadData, 15000); // auto-refresh tiap 15 detik
+</script>
+</body>
+</html>
