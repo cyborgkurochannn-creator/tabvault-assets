@@ -5,6 +5,7 @@
  * ID | Nama | Nomor Tab | Peminjaman | Kembali | SPV
  */
 const SHEET_NAME = 'Peminjaman';
+const DELETE_PASSWORD = 'spvhcij359';
 
 function doGet(e) {
   const action = (e.parameter.action || 'list');
@@ -40,8 +41,8 @@ function doPost(e) {
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] === body.id) {
-        sheet.getRange(i + 1, 5).setValue(new Date()); // kolom Kembali
-        sheet.getRange(i + 1, 6).setValue(body.spv);   // kolom SPV
+        sheet.getRange(i + 1, 5).setValue(new Date());
+        sheet.getRange(i + 1, 6).setValue(body.spv);
         return respond({ success: true });
       }
     }
@@ -49,6 +50,9 @@ function doPost(e) {
   }
 
   if (action === 'delete') {
+    if (body.password !== DELETE_PASSWORD) {
+      return respond({ success: false, error: 'Kata sandi salah' });
+    }
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] === body.id) {
