@@ -354,6 +354,62 @@
     margin-top:60px;
     letter-spacing:1px;
   }
+
+  /* ---------- RETURN MODAL ---------- */
+  .modal-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    z-index:200;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal-box{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:26px 28px;
+    width:100%;
+    max-width:320px;
+    box-shadow:var(--shadow);
+  }
+  .modal-box h3{
+    font-family:'Fraunces', serif;
+    margin:0 0 6px;
+    color:var(--cream);
+    font-size:19px;
+  }
+  .modal-box .sub{
+    font-size:12.5px;
+    color:var(--muted);
+    margin:0 0 16px;
+  }
+  .modal-box label{
+    display:block;
+    font-size:11px;
+    letter-spacing:1.4px;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+  .modal-box select{margin-bottom:18px;}
+  .modal-actions{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+  }
+  .btn-secondary{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--muted);
+    padding:10px 18px;
+    border-radius:8px;
+  }
+  .btn-secondary:hover{border-color:var(--muted);}
+
   @media (max-width:720px){
     .stats{grid-template-columns:1fr;}
     form{grid-template-columns:1fr;}
@@ -440,12 +496,13 @@
           <th>Nomor Tab</th>
           <th>Peminjaman</th>
           <th>Kembali</th>
+          <th>SPV Penerima</th>
           <th>Status</th>
           <th></th>
         </tr>
       </thead>
       <tbody id="tableBody">
-        <tr><td colspan="6"><div class="empty-state"><div class="glyph">⟳</div>Memuat data…</div></td></tr>
+        <tr><td colspan="7"><div class="empty-state"><div class="glyph">⟳</div>Memuat data…</div></td></tr>
       </tbody>
     </table>
   </section>
@@ -454,6 +511,22 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Modal: Tandai Kembali -->
+<div class="modal-overlay" id="returnModal">
+  <div class="modal-box">
+    <h3>Tandai Kembali</h3>
+    <p class="sub">Pilih SPV yang menerima tablet ini.</p>
+    <label for="spvSelect">Nama SPV</label>
+    <select id="spvSelect">
+      <option value="" disabled selected>Pilih SPV…</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeReturnModal()">Batal</button>
+      <button class="btn-primary" onclick="confirmReturn()">Konfirmasi</button>
+    </div>
+  </div>
+</div>
 
 <script>
   // =====================================================
@@ -478,7 +551,7 @@ const PESERTA = [
 { nama: "IRFAN", foto: "img/IRFAN.jpg" },
   { nama: "ILHAM", foto: "img/ILHAM.jpg" },
   { nama: "INDRI", foto: "img/INDRI.jpg" },
-  { nama: "JEANNET", foto: "img/JEANNET.jpg" },
+  { nama: "JEANNET", foto: "img/JANET.jpg" },
   { nama: "KIKI", foto: "img/KIKI.jpg" },
   { nama: "MELIN", foto: "img/MELIN.jpg" },
   { nama: "MIRNA", foto: "img/MIRNA.jpg" },
@@ -502,23 +575,29 @@ Object.values(FOTO_BY_NAMA).forEach(src => {
     const img = new Image();
     img.src = src;
 });
- 
+
   // Typo 'TAB20' diperbaiki menjadi 'TAB-20' agar format konsisten
   const DAFTAR_TAB = ['TAB-1','TAB-2','TAB-3','TAB-4','TAB-5','TAB-6','TAB-7','TAB-8','TAB-9','TAB-10','TAB-11','TAB-12','TAB-13','TAB-14','TAB-15','TAB-16','TAB-17','TAB-18','TAB-19','TAB-20','TAB-21','TAB-22','TAB-23','TAB-24','TAB-25'];
+
+  // Daftar nama SPV yang menerima tablet saat dikembalikan
+  const DAFTAR_SPV = ['AMIN','ASSYIFA','BILLY','DIVA','ENI','GHINA','HANS','LINDA','LUCKI','OZZY','PRASS','RIZKI','TAKIM','UBAI','WAYUDDIN','ZAHRA','ZAINUL'];
 
   const tableBody = document.getElementById('tableBody');
   const toast = document.getElementById('toast');
   const configBanner = document.getElementById('configBanner');
   const namaSelect = document.getElementById('nama');
   const tabSelect = document.getElementById('nomorTab');
+  const spvSelect = document.getElementById('spvSelect');
+  const returnModal = document.getElementById('returnModal');
   let allData = [];
-let lastDataHash = "";
+  let lastDataHash = "";
+  let pendingReturnId = null;
 
   if (!API_URL || API_URL.includes('GANTI_DENGAN')) {
     configBanner.style.display = 'block';
   }
 
-  // Isi dropdown nama & nomor tab dari daftar tetap
+  // Isi dropdown nama, nomor tab, & SPV dari daftar tetap
   function populateSelects(){
     PESERTA.forEach(p => {
       const opt = document.createElement('option');
@@ -531,6 +610,12 @@ let lastDataHash = "";
       opt.value = tab;
       opt.textContent = tab;
       tabSelect.appendChild(opt);
+    });
+    DAFTAR_SPV.forEach(nama => {
+      const opt = document.createElement('option');
+      opt.value = nama;
+      opt.textContent = nama;
+      spvSelect.appendChild(opt);
     });
   }
   populateSelects();
@@ -559,7 +644,7 @@ let lastDataHash = "";
 
   function renderTable(data){
     if(!data.length){
-      tableBody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="glyph">◇</div>Ledger masih kosong. Catat peminjaman pertama di atas.</div></td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="glyph">◇</div>Ledger masih kosong. Catat peminjaman pertama di atas.</div></td></tr>`;
       return;
     }
     tableBody.innerHTML = data.map(r => {
@@ -580,6 +665,7 @@ let lastDataHash = "";
         <td data-label="Nomor Tab"><span class="nomor-tab">${escapeHtml(r.nomorTab)}</span></td>
         <td data-label="Peminjaman"><span class="tanggal">${fmtDate(r.peminjaman)}</span></td>
         <td data-label="Kembali"><span class="tanggal">${r.kembali ? fmtDate(r.kembali) : '—'}</span></td>
+        <td data-label="SPV Penerima">${r.spv ? escapeHtml(r.spv) : '—'}</td>
         <td data-label="Status">
           ${r.kembali
             ? `<span class="stamp kembali">Kembali</span>`
@@ -622,7 +708,7 @@ let lastDataHash = "";
         }
 
     } catch(err){
-        tableBody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="glyph">⚠</div>Tidak bisa terhubung ke API. Cek konfigurasi API_URL.</div></td></tr>`;
+        tableBody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="glyph">⚠</div>Tidak bisa terhubung ke API. Cek konfigurasi API_URL.</div></td></tr>`;
     }
 }
   async function postAction(payload){
@@ -657,17 +743,40 @@ let lastDataHash = "";
     btn.disabled = false; btn.textContent = 'Pinjamkan →';
   });
 
-  async function markReturn(id){
+  // ---------- Tandai Kembali (dengan pilih SPV) ----------
+  function markReturn(id){
+    pendingReturnId = id;
+    spvSelect.value = '';
+    returnModal.classList.add('show');
+  }
+
+  function closeReturnModal(){
+    returnModal.classList.remove('show');
+    pendingReturnId = null;
+  }
+
+  async function confirmReturn(){
+    const spv = spvSelect.value;
+    if(!spv){
+      showToast('Pilih SPV terlebih dahulu.');
+      return;
+    }
     try{
-      const json = await postAction({action:'return', id});
+      const json = await postAction({action:'return', id: pendingReturnId, spv});
       if(json.success){
-        showToast('Ditandai kembali.');
+        showToast('Ditandai kembali, diterima oleh ' + spv);
+        closeReturnModal();
         loadData();
       } else {
         showToast('Gagal: ' + json.error);
       }
     } catch(err){ showToast('Terjadi kesalahan koneksi.'); }
   }
+
+  // Tutup modal kalau klik area gelap di luar kotak
+  returnModal.addEventListener('click', (e)=>{
+    if(e.target === returnModal) closeReturnModal();
+  });
 
   async function removeRow(id){
     if(!confirm('Hapus entri ini dari ledger?')) return;
