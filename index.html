@@ -124,7 +124,7 @@
   }
   .panel h2{ font-family:'Fraunces', serif; font-size:19px; font-weight:600; margin:0 0 4px; color:var(--cream); }
   .panel .sub{font-size:12.5px;color:var(--muted);margin:0 0 20px;}
-  form{ display:grid; grid-template-columns:1.3fr 1fr auto; gap:14px; align-items:end; }
+  form{ display:grid; grid-template-columns:1.1fr 0.9fr 1.1fr auto; gap:14px; align-items:end; }
   label{
     display:block;
     font-size:11px;
@@ -133,7 +133,7 @@
     color:var(--muted);
     margin-bottom:8px;
   }
-  input[type=text], input[type=password], select{
+  input[type=text], input[type=password], input[type=datetime-local], select{
     width:100%;
     background:#0F0D0A;
     border:1px solid var(--border);
@@ -154,7 +154,8 @@
     padding-right:34px;
   }
   select:disabled{opacity:.5; cursor:not-allowed;}
-  input[type=text]:focus, input[type=password]:focus, select:focus{border-color:var(--gold);}
+  input[type=text]:focus, input[type=password]:focus, input[type=datetime-local]:focus, select:focus{border-color:var(--gold);}
+  input[type=datetime-local]{color-scheme:dark;}
   button{
     font-family:'Manrope', sans-serif;
     font-weight:700;
@@ -368,6 +369,10 @@
           <option value="" disabled selected>Pilih nomor tab…</option>
         </select>
       </div>
+      <div>
+        <label for="tanggalPinjam">Tanggal Peminjaman</label>
+        <input type="datetime-local" id="tanggalPinjam" required />
+      </div>
       <button type="submit" class="btn-primary" id="submitBtn">Pinjamkan →</button>
     </form>
   </section>
@@ -411,6 +416,8 @@
     <select id="spvSelect">
       <option value="" disabled selected>Pilih SPV…</option>
     </select>
+    <label for="tanggalKembali" style="margin-top:12px;">Tanggal Kembali</label>
+    <input type="datetime-local" id="tanggalKembali" />
     <div class="modal-actions">
       <button class="btn-secondary" onclick="closeReturnModal()">Batal</button>
       <button class="btn-primary" onclick="confirmReturn()">Konfirmasi</button>
@@ -450,14 +457,14 @@ const PESERTA = [
   { nama: "AMIN", foto: "img/AMIN.jpg" },
   { nama: "DIVAN", foto: "img/DIVAN.jpg" },
   { nama: "ERNI", foto: "img/ERNI.jpg" },
-  { nama: "EVAND", foto: "img/EVAND.jpg" },
+  { nama: "EVAN", foto: "img/EVAN.jpg" },
   { nama: "FADLI", foto: "img/FADLI.jpg" },
   { nama: "HANA", foto: "img/HANA.jpg" },
   { nama: "ICHA", foto: "img/ICHA.jpg" },
 { nama: "IRFAN", foto: "img/IRFAN.jpg" },
   { nama: "ILHAM", foto: "img/ILHAM.jpg" },
   { nama: "INDRI", foto: "img/INDRI.jpg" },
-  { nama: "JEANNET", foto: "img/JEANNET.jpg" },
+  { nama: "JEANNET", foto: "img/JANET.jpg" },
   { nama: "KIKI", foto: "img/KIKI.jpg" },
   { nama: "MELIN", foto: "img/MELIN.jpg" },
   { nama: "MIRNA", foto: "img/MIRNA.jpg" },
@@ -494,7 +501,9 @@ Object.values(FOTO_BY_NAMA).forEach(src => {
   const namaSelect = document.getElementById('nama');
   const tabSelect = document.getElementById('nomorTab');
   const submitBtn = document.getElementById('submitBtn');
+  const tanggalPinjamInput = document.getElementById('tanggalPinjam');
   const spvSelect = document.getElementById('spvSelect');
+  const tanggalKembaliInput = document.getElementById('tanggalKembali');
   const returnModal = document.getElementById('returnModal');
   const deleteModal = document.getElementById('deleteModal');
   const deletePasswordInput = document.getElementById('deletePassword');
@@ -560,6 +569,14 @@ Object.values(FOTO_BY_NAMA).forEach(src => {
     submitBtn.disabled = !adaTabTersedia;
     submitBtn.textContent = adaTabTersedia ? 'Pinjamkan →' : 'Semua tab dipinjam';
   }
+
+  function nowForDatetimeLocal(){
+    const d = new Date();
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    return d.toISOString().slice(0,16);
+  }
+
+  tanggalPinjamInput.value = nowForDatetimeLocal();
 
   function showToast(msg){
     toast.textContent = msg;
@@ -667,7 +684,8 @@ Object.values(FOTO_BY_NAMA).forEach(src => {
     e.preventDefault();
     const nama = namaSelect.value;
     const nomorTab = tabSelect.value;
-    if(!nama || !nomorTab) return;
+    const tanggalPinjam = tanggalPinjamInput.value;
+    if(!nama || !nomorTab || !tanggalPinjam) return;
 
     // Pengaman tambahan di sisi client: pastikan tab ini belum dipinjam
     // (mencegah race condition jika ada tab browser lain yang meminjamkannya
@@ -681,10 +699,11 @@ Object.values(FOTO_BY_NAMA).forEach(src => {
 
     submitBtn.disabled = true; submitBtn.textContent = 'Menyimpan…';
     try{
-      const json = await postAction({action:'borrow', nama, nomorTab});
+      const json = await postAction({action:'borrow', nama, nomorTab, tanggal: new Date(tanggalPinjam).toISOString()});
       if(json.success){
         showToast(`Tercatat: ${nama} meminjam ${nomorTab}`);
         document.getElementById('borrowForm').reset();
+        tanggalPinjamInput.value = nowForDatetimeLocal();
         await loadData();
       } else {
         showToast('Gagal: ' + json.error);
@@ -701,6 +720,7 @@ Object.values(FOTO_BY_NAMA).forEach(src => {
   function markReturn(id){
     pendingReturnId = id;
     spvSelect.value = '';
+    tanggalKembaliInput.value = nowForDatetimeLocal();
     returnModal.classList.add('show');
   }
 
@@ -711,12 +731,17 @@ Object.values(FOTO_BY_NAMA).forEach(src => {
 
   async function confirmReturn(){
     const spv = spvSelect.value;
+    const tanggalKembali = tanggalKembaliInput.value;
     if(!spv){
       showToast('Pilih SPV terlebih dahulu.');
       return;
     }
+    if(!tanggalKembali){
+      showToast('Pilih tanggal kembali terlebih dahulu.');
+      return;
+    }
     try{
-      const json = await postAction({action:'return', id: pendingReturnId, spv});
+      const json = await postAction({action:'return', id: pendingReturnId, spv, tanggal: new Date(tanggalKembali).toISOString()});
       if(json.success){
         showToast('Ditandai kembali, diterima oleh ' + spv);
         closeReturnModal();
