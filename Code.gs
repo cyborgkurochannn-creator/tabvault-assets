@@ -1,18 +1,9 @@
 /**
  * TABVAULT — Backend API untuk Dashboard Peminjaman Tablet
  * ----------------------------------------------------------
- * Cara pakai:
- * 1. Buat Google Spreadsheet baru (boleh kosong).
- * 2. Buka Extensions > Apps Script, hapus isi default, tempel file ini.
- * 3. Klik Deploy > New deployment > pilih "Web app".
- *    - Execute as     : Me
- *    - Who has access : Anyone
- * 4. Salin URL yang berakhiran /exec, itu adalah API_URL untuk frontend.
- *
  * Sheet "Peminjaman" akan dibuat otomatis dengan kolom:
- * ID | Nama | Nomor Tab | Peminjaman | Kembali
+ * ID | Nama | Nomor Tab | Peminjaman | Kembali | SPV
  */
-
 const SHEET_NAME = 'Peminjaman';
 
 function doGet(e) {
@@ -30,7 +21,6 @@ function doPost(e) {
   } catch (err) {
     return respond({ success: false, error: 'Body tidak valid' });
   }
-
   const action = body.action;
   const sheet = getSheet();
 
@@ -39,15 +29,19 @@ function doPost(e) {
       return respond({ success: false, error: 'Nama dan Nomor Tab wajib diisi' });
     }
     const id = Utilities.getUuid();
-    sheet.appendRow([id, body.nama, body.nomorTab, new Date(), '']);
+    sheet.appendRow([id, body.nama, body.nomorTab, new Date(), '', '']);
     return respond({ success: true, id: id });
   }
 
   if (action === 'return') {
+    if (!body.spv) {
+      return respond({ success: false, error: 'Nama SPV wajib diisi' });
+    }
     const data = sheet.getDataRange().getValues();
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] === body.id) {
-        sheet.getRange(i + 1, 5).setValue(new Date());
+        sheet.getRange(i + 1, 5).setValue(new Date()); // kolom Kembali
+        sheet.getRange(i + 1, 6).setValue(body.spv);   // kolom SPV
         return respond({ success: true });
       }
     }
@@ -73,7 +67,7 @@ function getSheet() {
   let sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
-    sheet.appendRow(['ID', 'Nama', 'Nomor Tab', 'Peminjaman', 'Kembali']);
+    sheet.appendRow(['ID', 'Nama', 'Nomor Tab', 'Peminjaman', 'Kembali', 'SPV']);
     sheet.setFrozenRows(1);
   }
   return sheet;
@@ -91,10 +85,10 @@ function getAllData() {
       nama: row[1],
       nomorTab: row[2],
       peminjaman: row[3] ? new Date(row[3]).toISOString() : '',
-      kembali: row[4] ? new Date(row[4]).toISOString() : ''
+      kembali: row[4] ? new Date(row[4]).toISOString() : '',
+      spv: row[5] || ''
     });
   }
-  // Terbaru di atas
   rows.reverse();
   return rows;
 }
