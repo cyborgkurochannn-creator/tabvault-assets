@@ -153,6 +153,7 @@
     background-position:right 14px center;
     padding-right:34px;
   }
+  select:disabled{opacity:.5; cursor:not-allowed;}
   input[type=text]:focus, input[type=password]:focus, select:focus{border-color:var(--gold);}
   button{
     font-family:'Manrope', sans-serif;
@@ -353,7 +354,7 @@
 
   <section class="panel">
     <h2>Catat Peminjaman Baru</h2>
-    <p class="sub">Pilih nama peminjam dan nomor tab untuk membuka entri baru di ledger.</p>
+    <p class="sub">Pilih nama peminjam dan nomor tab untuk membuka entri baru di ledger. Nomor tab yang sedang dipinjam tidak akan muncul di daftar.</p>
     <form id="borrowForm">
       <div>
         <label for="nama">Nama Peminjam</label>
@@ -449,13 +450,14 @@ const PESERTA = [
   { nama: "AMIN", foto: "img/AMIN.jpg" },
   { nama: "DIVAN", foto: "img/DIVAN.jpg" },
   { nama: "ERNI", foto: "img/ERNI.jpg" },
+  { nama: "EVAND", foto: "img/EVAND.jpg" },
   { nama: "FADLI", foto: "img/FADLI.jpg" },
   { nama: "HANA", foto: "img/HANA.jpg" },
   { nama: "ICHA", foto: "img/ICHA.jpg" },
 { nama: "IRFAN", foto: "img/IRFAN.jpg" },
   { nama: "ILHAM", foto: "img/ILHAM.jpg" },
   { nama: "INDRI", foto: "img/INDRI.jpg" },
-  { nama: "JEANNET", foto: "img/JANET.jpg" },
+  { nama: "JEANNET", foto: "img/JEANNET.jpg" },
   { nama: "KIKI", foto: "img/KIKI.jpg" },
   { nama: "MELIN", foto: "img/MELIN.jpg" },
   { nama: "MIRNA", foto: "img/MIRNA.jpg" },
@@ -491,6 +493,7 @@ Object.values(FOTO_BY_NAMA).forEach(src => {
   const configBanner = document.getElementById('configBanner');
   const namaSelect = document.getElementById('nama');
   const tabSelect = document.getElementById('nomorTab');
+  const submitBtn = document.getElementById('submitBtn');
   const spvSelect = document.getElementById('spvSelect');
   const returnModal = document.getElementById('returnModal');
   const deleteModal = document.getElementById('deleteModal');
@@ -512,20 +515,51 @@ Object.values(FOTO_BY_NAMA).forEach(src => {
       opt.textContent = p.nama;
       namaSelect.appendChild(opt);
     });
-    DAFTAR_TAB.forEach(tab => {
-      const opt = document.createElement('option');
-      opt.value = tab;
-      opt.textContent = tab;
-      tabSelect.appendChild(opt);
-    });
     DAFTAR_SPV.forEach(nama => {
       const opt = document.createElement('option');
       opt.value = nama;
       opt.textContent = nama;
       spvSelect.appendChild(opt);
     });
+    // Nomor tab diisi secara dinamis oleh updateTabOptions(), karena
+    // bergantung pada tablet mana yang sedang dipinjam.
+    updateTabOptions([]);
   }
   populateSelects();
+
+  // ---------- Cegah nomor tab yang sedang dipinjam dipilih lagi ----------
+  function updateTabOptions(data){
+    const previousValue = tabSelect.value;
+    const tabSedangDipinjam = new Set(
+      data.filter(r => !r.kembali).map(r => String(r.nomorTab))
+    );
+    const tabTersedia = DAFTAR_TAB.filter(t => !tabSedangDipinjam.has(t));
+
+    tabSelect.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    placeholder.textContent = tabTersedia.length ? 'Pilih nomor tab…' : 'Semua tab sedang dipinjam';
+    tabSelect.appendChild(placeholder);
+
+    tabTersedia.forEach(tab => {
+      const opt = document.createElement('option');
+      opt.value = tab;
+      opt.textContent = tab;
+      tabSelect.appendChild(opt);
+    });
+
+    // Pertahankan pilihan sebelumnya jika masih tersedia
+    if (previousValue && tabTersedia.includes(previousValue)) {
+      tabSelect.value = previousValue;
+    }
+
+    const adaTabTersedia = tabTersedia.length > 0;
+    tabSelect.disabled = !adaTabTersedia;
+    submitBtn.disabled = !adaTabTersedia;
+    submitBtn.textContent = adaTabTersedia ? 'Pinjamkan →' : 'Semua tab dipinjam';
+  }
 
   function showToast(msg){
     toast.textContent = msg;
@@ -607,6 +641,7 @@ Object.values(FOTO_BY_NAMA).forEach(src => {
 
                 renderStats(allData);
                 renderTable(allData);
+                updateTabOptions(allData);
 
             }
 
@@ -633,21 +668,33 @@ Object.values(FOTO_BY_NAMA).forEach(src => {
     const nama = namaSelect.value;
     const nomorTab = tabSelect.value;
     if(!nama || !nomorTab) return;
-    const btn = document.getElementById('submitBtn');
-    btn.disabled = true; btn.textContent = 'Menyimpan…';
+
+    // Pengaman tambahan di sisi client: pastikan tab ini belum dipinjam
+    // (mencegah race condition jika ada tab browser lain yang meminjamkannya
+    // di antara saat halaman dimuat dan saat form ini dikirim)
+    const sudahDipinjamOrangLain = allData.some(r => !r.kembali && String(r.nomorTab) === nomorTab);
+    if(sudahDipinjamOrangLain){
+      showToast(`${nomorTab} baru saja dipinjam orang lain. Silakan pilih tab lain.`);
+      await loadData();
+      return;
+    }
+
+    submitBtn.disabled = true; submitBtn.textContent = 'Menyimpan…';
     try{
       const json = await postAction({action:'borrow', nama, nomorTab});
       if(json.success){
         showToast(`Tercatat: ${nama} meminjam ${nomorTab}`);
         document.getElementById('borrowForm').reset();
-        loadData();
+        await loadData();
       } else {
         showToast('Gagal: ' + json.error);
       }
     } catch(err){
       showToast('Terjadi kesalahan koneksi.');
     }
-    btn.disabled = false; btn.textContent = 'Pinjamkan →';
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Pinjamkan →';
+    updateTabOptions(allData);
   });
 
   // ---------- Tandai Kembali (dengan pilih SPV) ----------
